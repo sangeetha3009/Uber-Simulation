@@ -70,12 +70,3 @@ box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 -moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 -webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
-
-#map_canvas{
-	position:absolute; 
-	top:3cm; 
-	left:0px; 
-	height:60%;
-	 height:calc(100% - 30px); 
-	 width:100%;overflow:hidden;
-}

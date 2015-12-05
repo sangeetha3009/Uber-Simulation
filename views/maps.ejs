@@ -1,277 +1,49 @@
-<!doctype html>
-<html>
+<html ng-app="myMap">
 <head>
-	<link rel='stylesheet' href='/stylesheets/styleDriverSignin.css' />
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script type="text/javascript" src="//maps.google.com/maps/api/js?v=3&amp;libraries=places,geometry"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.js"></script>
+    <script data-require="angular.js@1.3.15" data-semver="1.3.15" src="https://code.angularjs.org/1.3.15/angular.js"></script>
+ 	<link rel='stylesheet' href='/stylesheets/angular-material-sidenav.css' />
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css">
+  	<link href="/stylesheets/xeditable.css" rel="stylesheet">
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-route.js"></script>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 </head>
-<body ng-app="myApp">
-<div class="row">
-	<div class="headerUber" id="headerUber">
-		U B E R
-	</div>  
-
-	<p>
-		<input type="button" onclick="calculate()" value="Get Distance"/>
-	</p>
-</div>
-<div class="row">
-	<div id="topbar">  
- 		<p>
- 			Enter Source Address<input id="pac-input"/>
-			<input type="hidden" id="latitude"/>
-			<input type="hidden" id="longitude"/>
-		</p>
-		<p>
-			Enter Destination Address<input id="pac-input2"/>
-			<input type="hidden" id="latitude"/>
-			<input type="hidden" id="longitude"/>
-		</p>
+<body style="background-color:BLACK">
+	<div class="row">
+		<header role="banner" class="navbar navbar-fixed-top navbar-inverse">
+	      <div class="container">
+		        <div class="navbar-header">
+		          <button data-toggle="collapse-side" data-target=".side-collapse" data-target-2=".side-collapse-container" type="button" class="navbar-toggle pull-left"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+		        </div>
+		        <div class="navbar-inverse side-collapse in">
+			          <nav role="navigation" class="navbar-collapse">
+			            <ul class="nav navbar-nav">
+			              <li><a href="#/customer/viewProfile">View Profile</a></li>
+			              <li><a href="#/customer/editProfile">Edit Profile</a></li>
+			              <li><a href="/customer/RidesHistoryLoad">View Ride/Billing Info</a></li>               
+			              <li><img src="/header.png" style="margin-left:180px;align:center;margin-top: 0.3cm;"></li>
+			            </ul>
+			            <ul class="nav navbar-nav" style="margin-left:200px;">
+			            	 <li><a href="/deleteAccount">Delete Account</a></li>
+			                 <li><a href='/logout'>Logout</a></li>
+			            </ul>     
+			          </nav>
+		        </div>
+	      </div>
+	    </header>
 	</div>
-	<div id="map_canvas" style="position:absolute; top:3cm; left:0px; height:60%; height:calc(100% - 30px); width:100%;overflow:hidden;"></div>
-</div>	
-<script>
-    
-    var distanceLimit = 500; //in meters
-    var numberRandomPoints = 5;
-    var mapZoomLevel = 16;
-    var locationindex = 0;
-    var markers=[];
-    var p1,p2;
-    var iconBase = new google.maps.MarkerImage('uber.png',null,null,null,new google.maps.Size(42, 68));
-  	var myLatlng = new google.maps.LatLng(37.335270, -121.880669);  
-    
-    function initialize() {
-    
-      
-  var mapcenter = new google.maps.LatLng(parseFloat(myLatlng.lat()),parseFloat(myLatlng.lng()));
-  
-	var mapOptions = {
-    zoom: 17,
-    center: mapcenter,
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-  };
-
-  var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-  
-  
-var mappoints = generateMapPoints(myLatlng, distanceLimit, numberRandomPoints);
-createRandomMapMarkers(map, mappoints);
-//var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
-var marker2;
-  
-  
-//Create markers for the randomly generated points
-function createRandomMapMarkers(map, mappoints) {
-    for (var i = 0; i < mappoints.length; i++) {
-    	
-        //Map points without the east/west adjustment
-        var newmappoint = new google.maps.LatLng(parseFloat(mappoints[i].latitude),parseFloat( mappoints[i].longitude));
-        marker2 = new google.maps.Marker({
-            position:newmappoint,
-            map: map,
-            icon:iconBase,
-            title: mappoints[i].latitude + ', ' + mappoints[i].longitude,
-            zIndex: 2
-        });
-         markers.push(marker2);
-         google.maps.event.addListener(marker2,'click',(function(marker){
-         return function(){
-         alert('am here');
-         }
-         })(marker));
-
-    }
-}
-
-
-
-
-
-
-function generateMapPoints(center, distance, amount) {
-    var mappoints = [];
-    clearMarkers();
-    for (var i=0; i<amount; i++) {
-    	
-        mappoints.push(randomGeo(center, distance));
-    }
-    return mappoints;
-}
-
-//Create random lat/long coordinates in a specified radius around a center point
-function randomGeo(center, radius) {
-    var y0 = center.lat();
-    var x0 = center.lng();
-    var rd = radius / 111300; //about 111300 meters in one degree
-
-    var u = Math.random();
-    var v = Math.random();
-
-    var w = rd * Math.sqrt(u);
-    var t = 2 * Math.PI * v;
-    var x = w * Math.cos(t);
-    var y = w * Math.sin(t);
-
-    //Adjust the x-coordinate for the shrinking of the east-west distances
-    var xp = x / Math.cos(y0);
-
-    var newlat = y + y0;
-    var newlon = x + x0;
-    var newlon2 = xp + x0;
-
-    return {
-        'latitude': newlat.toFixed(5),
-        'longitude': newlon.toFixed(5),
-        'longitude2': newlon2.toFixed(5),
-        'distance': distance(center.lat(), center.longitude, newlat, newlon).toFixed(2),
-        'distance2': distance(center.lng(), center.longitude, newlat, newlon2).toFixed(2),
-    };
-}
-
-
-function distance(lat1, lon1, lat2, lon2) {
-    var R = 6371000;
-    var a = 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180) / 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos((lon2 - lon1) * Math.PI / 180)) / 2;
-    return R * 2 * Math.asin(Math.sqrt(a));
-}
-
-  var marker = new google.maps.Marker({
-    position: myLatlng,
-    map: map,
-    draggable: true,
-    
-  });
-  
-  
-  
-
-  //set the value of the hidden inputs when the position changes
-  google.maps.event.addListener(marker, 'position_changed', function() {
-  
-    document.getElementById('latitude').value = this.getPosition().lat();
-    document.getElementById('longitude').value = this.getPosition().lng();
-    var myLatlng = new google.maps.LatLng(parseFloat(document.getElementById('latitude').value),parseFloat(document.getElementById('longitude').value ));
-    p1=new google.maps.LatLng(parseFloat(document.getElementById('latitude').value),parseFloat(document.getElementById('longitude').value ));
-    var mappoints = generateMapPoints(myLatlng, distanceLimit, numberRandomPoints);
-	createRandomMapMarkers(map, mappoints);    
-  });
-  
- 
-  	// Create an Autocomplete and link it to the UI element.
-  	var input= /** @type {HTMLInputElement} */ (
-    document.getElementById('pac-input'));
-    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
-  
-  
-  	// Create an Autocomplete and link it to the UI element.
-  	var input2= /** @type {HTMLInputElement} */ (
-    document.getElementById('pac-input2'));
-  	map.controls[google.maps.ControlPosition.TOP_CENTER].push(input2);
-  
-  	var searchBox = new google.maps.places.Autocomplete(
-    /** @type {HTMLInputElement} */
-    (input), {
-      types: ['geocode']
-    });
-
-
-	var searchBox2 = new google.maps.places.Autocomplete(
-    /** @type {HTMLInputElement} */
-    (input2), {
-      types: ['geocode']
-    });
-    
-    google.maps.event.addListener(searchBox2,'place_changed', function() {
-    var geocoder = new google.maps.Geocoder();
-	var address = document.getElementById("pac-input2").value;
-	geocoder.geocode( { 'address': address}, function(results, status) {
-  		if (status == google.maps.GeocoderStatus.OK)
-	  {
-      //alert(results[0].geometry.location.lat(),results[0].geometry.location.lng());
-      p2=new google.maps.LatLng(results[0].geometry.location.lat(),results[0].geometry.location.lng());
-  	}
-});
-    
-    });
-    
-    
-  // Listen for the event fired when the user selects an item from the
-  // pick list. Retrieve the matching places for that item.
-  google.maps.event.addListener(searchBox,'place_changed', function() {
-    var place = this.getPlace();
-    //when place has been found
-    if (place.geometry) {
-      marker.setOptions({
-        title: place.name,
-        position: place.geometry.location
-      });
-      if (place.geometry.viewport) {
-        marker.getMap().fitBounds(place.geometry.viewport);
-      } else {
-        marker.getMap().setCenter(place.geometry.location);
-      }
-      //alert('latitude of src box '+document.getElementById('latitude').value);
-   	  //alert('longitude of src box '+document.getElementById('longitude').value);
-       
-    }
-    //otherwise
-    else {
-      marker.setOptions({
-        title: null
-      });
-      alert('place not found');
-    }
-  });
-
-	
-	
-  // Bias the SearchBox results towards places that are within the bounds of the
-  // current map's viewport.
-  google.maps.event.addListener(map, 'bounds_changed', function() {
-  	
-    var bounds = map.getBounds();
-    searchBox.setBounds(bounds);
-  });
-  
-  
-  
-  
-  //Destroy all markers
-function clearMarkers() {
-    for (var i = 0; i < markers.length; i++) {
-        markers[i].setMap(null);
-    }
-    markers = [];
-}
-
-$('#location_switch').change(function() {
-    var newlocation = $(this).val();
-    
-    clearMarkers();
-
-    mapcenter = new google.maps.LatLng(locations[newlocation].latitude, locations[newlocation].longitude);
-    map.panTo(mapcenter);
-    centermarker = addCenterMarker(mapcenter, locations[newlocation].name + '<br>' + locations[newlocation].latitude + ', ' + locations[newlocation].longitude);
-    mappoints = generateMapPoints(locations[newlocation], distanceLimit, numberRandomPoints);
-
-    //Draw default items
-    currentcircle.setMap(null);
-    drawRadiusCircle(map, centermarker, distanceLimit);
-    createRandomMapMarkers(map, mappoints);
-});
-  
-
- 
-}
-
-google.maps.event.addDomListener(window, 'load', initialize); 
-
-function calculate(){
-var y=(google.maps.geometry.spherical.computeDistanceBetween(p1, p2)/1000).toFixed(2);
-//alert('Distance '+y);
-}
-</script>
-</body>
-</html>
+				<div class="row">
+					<div ng-view></div>
+				</div>
+                <script
+					src="/angularjs/angular.js">
+				</script>                
+                <!-- /top nav -->
+</body>               
+<script src="/angularjs/xeditable.js"></script>               
+</html>               
